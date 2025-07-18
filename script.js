@@ -106,59 +106,38 @@ const playMusic = (track) => {
 
 
 async function displayAlbums() {
-    try {
-        const res = await fetch(`/songs`);
-        const html = await res.text();
+    const res = await fetch("./songs/info.json");
+    const albums = await res.json();
 
-        const div = document.createElement("div");
-        div.innerHTML = html;
+    const cardContainer = document.querySelector(".card-container");
+    cardContainer.innerHTML = "";
 
-        const anchors = Array.from(div.getElementsByTagName("a"));
-        const cardContainer = document.querySelector(".card-container");
-        cardContainer.innerHTML = ""; // Clear previous cards if needed
+    for (const album of albums) {
+        try {
+            const infoRes = await fetch(`./songs/${album.folder}/info.json`);
+            const albumInfo = await infoRes.json();
 
-        for (const anchor of anchors) {
-            const href = anchor.getAttribute("href");
-
-            // Skip non-album folders
-            if (!href.includes("/songs") || href.includes(".htaccess")) continue;
-
-            // Extract folder name robustly
-            const folder = href.split("/").filter(Boolean).pop();
-
-            try {
-                // Load album metadata
-                const infoRes = await fetch(`/songs/${folder}/info.json`);
-                const albumInfo = await infoRes.json();
-
-                // Build and append card
-                const cardHTML = `
-                    <div data-folder="${folder}" class="card">
-                        <div class="play"><i class="fa-solid fa-play"></i></div>
-                        <img src="./songs/${folder}/cover.jpg" alt="${albumInfo.title}">
-                        <h2>${albumInfo.title}</h2>
-                        <p>${albumInfo.description || "Hits to boost your mood and fill you with happiness"}</p>
-                    </div>`;
-                cardContainer.innerHTML += cardHTML;
-
-            } catch (err) {
-                console.error(`Could not load album info for folder: ${folder}`, err);
-            }
+            cardContainer.innerHTML += `
+                <div data-folder="${album.folder}" class="card">
+                    <div class="play"><i class="fa-solid fa-play"></i></div>
+                    <img src="./songs/${album.folder}/cover.jpg" alt="${albumInfo.title}">
+                    <h2>${albumInfo.title}</h2>
+                    <p>${albumInfo.description || "Enjoy this album"}</p>
+                </div>
+            `;
+        } catch (err) {
+            console.error(`Could not load info for album: ${album.folder}`, err);
         }
-
-        // Attach event listeners AFTER rendering all cards
-        document.querySelectorAll(".card").forEach(card => {
-            card.addEventListener("click", async () => {
-                const folder = card.dataset.folder;
-                console.log("Album clicked:", folder);
-                await getSongs(`songs/${folder}/`);
-            });
-        });
-
-    } catch (error) {
-        console.error("Error loading albums:", error);
     }
+
+    // Add click event for loading songs
+    document.querySelectorAll(".card").forEach(card => {
+        card.addEventListener("click", async () => {
+            await getSongs(`songs/${card.dataset.folder}`);
+        });
+    });
 }
+
 
 
 async function main() {
