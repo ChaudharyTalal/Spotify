@@ -1,0 +1,12 @@
+[
+  {
+    "folder": "mysongs",
+    "title": "My Songs Album",
+    "description": "A collection of my best tracks"
+  },
+  {
+    "folder": "classics",
+    "title": "Classic Hits",
+    "description": "Golden oldies to relax to"
+  }
+]
